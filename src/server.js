@@ -31,6 +31,8 @@ server = http.createServer(
           var type = 'text/html',
               ext  = path.extname(pathname);
               
+          console.log('[GET] ' + pathname);
+
           if (err) {
             return send404(res);
           }

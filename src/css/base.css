@@ -1,5 +1,5 @@
 html {
-  background-color: #000;
+  background: #000 url(/images/board.tile.jpg) repeat;
   -webkit-user-select: none;
 }
 
@@ -9,15 +9,25 @@ body {
 }
 
 
-#chalkboard {
-  position: absolute;
-  top: 0; left: 0;
+#board {
+  margin-top: 50px;
 }
 
-#chalkboard,
+#toolbox {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height:   50px;
+  background: -moz-linear-gradient(top, #f2f5f6 0%, #e3eaed 50%, #CBD7DB 100%); /* firefox */
+
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f2f5f6), color-stop(50%,#e3eaed), color-stop(100%,#CBD7DB)); /* webkit */
+  -webkit-box-shadow: 0 3px 2px rgba(120,120,120,0.4);
+}
+
+#board,
 #canvas,
 #output {
   width: 768px;
   height: 690px;
 }
 
+#output { display:none; }

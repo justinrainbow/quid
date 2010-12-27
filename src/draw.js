@@ -4,7 +4,9 @@ YUI({
       fullpath: '/socket.io/socket.io.js'
     }
   }
-}).use('widget', 'base', 'plugin', 'event', 'event-touch', 'dom', 'node', 'socket.io', function(Y) {
+}).use(
+  'widget', 'base', 'plugin', 'event', 'event-touch', 
+  'dom', 'node', 'socket.io', function(Y) {
 
   
   var socket = new io.Socket(null, {port: 8124, rememberTransport: false});
@@ -41,8 +43,6 @@ YUI({
   context.lineWidth = 8;
   context.lineCap = "round";
   context.lineJoin = "miter";
-  context.fillStyle = '#ffffff';
-  context.fillRect(0, 0, canvas.get('width'), canvas.get('height'));
   context.strokeStyle = 'rgb(200,200,200)';  
   
   
