@@ -1,0 +1,12 @@
+CACHE MANIFEST
+
+/
+/draw.js
+/images/background.jpg
+/images/chalk.png
+/images/chalk-sprites.png
+/images/chalk-tile-erase.jpg
+/images/chalk-tile-red.png
+/images/chalk-tile-white.png
+/css/base.css
+/socket.io/socket.io.js

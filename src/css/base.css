@@ -1,0 +1,23 @@
+html {
+  background-color: #000;
+  -webkit-user-select: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+
+#chalkboard {
+  position: absolute;
+  top: 0; left: 0;
+}
+
+#chalkboard,
+#canvas,
+#output {
+  width: 768px;
+  height: 690px;
+}
+
