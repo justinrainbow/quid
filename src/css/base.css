@@ -1,5 +1,5 @@
 html {
-  background: #000 url(/images/board.tile.jpg) repeat;
+  background: #000;
   -webkit-user-select: none;
 }
 
@@ -11,15 +11,16 @@ body {
 
 #board {
   margin-top: 50px;
+  background: url(/images/board.tile.jpg) repeat;
 }
 
 #toolbox {
   position: fixed;
   top: 0; left: 0; right: 0;
   height:   50px;
-  background: -moz-linear-gradient(top, #f2f5f6 0%, #e3eaed 50%, #CBD7DB 100%); /* firefox */
+  background: -moz-linear-gradient(top, #ffffff 0%, #EDEDED 82%, #e5e5e5 100%); /* firefox */
 
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f2f5f6), color-stop(50%,#e3eaed), color-stop(100%,#CBD7DB)); /* webkit */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(82%,#EDEDED), color-stop(100%,#e5e5e5)); /* webkit */
   -webkit-box-shadow: 0 3px 2px rgba(120,120,120,0.4);
 }
 

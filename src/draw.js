@@ -1,4 +1,5 @@
 YUI({
+  filter: 'debug',
   modules: {
     'socket.io': {
       fullpath: '/socket.io/socket.io.js'
@@ -13,52 +14,189 @@ YUI({
   socket.connect();
   
   
-  var Toolbox = function(config) {
-    Toolbox.superclass.constructor.apply(this, arguments);
+  
+  Y.SketchPad = function(config) {
+    Y.SketchPad.superclass.constructor.apply(this, arguments);
   };
+
+  Y.SketchPad.NAME = 'sketchpad';
   
-  Toolbox.NS = 'toolbox';
-  
-  Toolbox.NAME = 'toolboxPlugin';
-  
-  Toolbox.ATTRS = {
+  Y.SketchPad.ATTRS = {
+    layers: {
+      getter: function(){
+        return this.get('contentBox').all('canvas');
+      }
+    },
     
+    drawing: {
+      value: false,
+      
+      setter: function(val) {
+        if (true == val) {
+          this._bindMoveEvent();
+        }
+        else {
+          this._unbindMoveEvent();
+        }
+        
+        this._isDrawing = val;
+      },
+      
+      getter: function() {
+        return this._isDrawing;
+      }
+    },
+    
+    offsets: {
+      setter: function(xy) {
+        this._boardOffsets = xy;
+      },
+      
+      getter: function() {
+        return this._boardOffsets;
+      }
+    },
+
+    xOffset: {
+      readOnly: true,
+      getter: function() {
+        return this._boardOffsets[0];
+      }
+    },
+
+    yOffset: {
+      readOnly: true,
+      getter: function() {
+        return this._boardOffsets[1];
+      }
+    }
   };
+
+  Y.extend(Y.SketchPad, Y.Widget, function(){
+    function getTouch(event) {
+      return 'touches' in event ? event.touches[0] : event;
+    };
+
+    return {
+      _isDrawing: false,
+      
+      _boardOffsets: [0, 0],
+      
+      initializer: function() {
+        Y.on('orientationchange', Y.bind(this._onOrientationChange, this), window);
+        
+        this.on('touchmove', function(event) {
+          event.preventDefault();
+        })
+        
+        this._onOrientationChange();
+      },
+      
+      bindUI: function() {
+        var boundingBox = this.get("boundingBox"),
+            initPaintEvents = ['touchstart','mousedown'],
+            endPaintEvents = ['touchend','mouseup'],
+            doPaintEvents = ['touchmove','mousemove'];
+        
+        Y.on(initPaintEvents, Y.bind(this._onTouchStart, this), boundingBox);
+        Y.on(endPaintEvents, Y.bind(this._onTouchEnd, this), boundingBox.get('ownerDocument'));
+        
+        this._doPaintHandler = Y.bind(this._onTouchMove, this);
+      },
+      
+      _bindMoveEvent: function() {
+        if (!this._moveListener) {
+          this._moveListener = Y.on(['touchmove','mousemove'], this._doPaintHandler, this.get('boundingBox'));
+        }
+      },
+      
+      _unbindMoveEvent: function() {
+        if (this._moveListener) {
+          var boundingBox = this.get('boundingBox');
+          
+          Y.Event.purgeElement(boundingBox, false, 'touchmove');
+          Y.Event.purgeElement(boundingBox, false, 'mousemove');
+          
+          delete this._moveListener;
+        }
+      },
+      
+      _onTouchStart: function(event) {
+        this.set('drawing', true);
+        
+        var _ref, touch;
+        touch = getTouch(event);
+        _ref = [touch.pageX - this.get('xOffset'), touch.pageY - this.get('yOffset')];
+        x = _ref[0];
+        y = _ref[1];
+        return event.preventDefault();
+      },
+      
+      _onTouchMove: function(event) {
+        if (this.get('drawing')) {
+          var touch = getTouch(event);
+          return points.push([touch.pageX - this.get('xOffset'), touch.pageY - this.get('yOffset')]);
+        }
+      },
+      
+      _onTouchEnd: function(event) {
+        this.set('drawing', false);
+
+        return points.push([x, y], [x, y], null);
+      },
+      
+      _onOrientationChange: function(event) {
+        var xy = this.get('boundingBox').getXY();
+        
+        this.set('offsets', xy);
+      },
+      
+      renderUI: function(){
+
+      },
+      
+      syncUI: function() {
+        var boundingBox = this.get('boundingBox'),
+            get = function(key) {
+              return parseInt(boundingBox.getStyle(key), 10);
+            };
+
+        this.get('layers')
+            .set('width', get('width'))
+            .set('height', get('height'));
+      },
+      
+      getLayer: function(index) {
+        return this.get('layers').item(index || 0);
+      },
+      
+      getCanvas: function(){
+        return this.getLayer(0)._node.getContext('2d');
+      }
+      
+    };
+  }());
+
   
-  Y.extend(Toolbox, Y.Plugin.Base, {
-    
+  canvas = new Y.SketchPad({
+    contentBox: '#board > .board',
+    boundingBox: '#board',
   });
+  canvas.render();
   
   
-	board  = Y.get('#board');
-  canvas = Y.one("#canvas");
-  output = Y.one("#output");
 
-  canvas.set("width", parseInt(board.getStyle('width')));
-  canvas.set("height", parseInt(board.getStyle('height')));
-  
-  xOffset = (yOffset = 0);
-
-  context = canvas._node.getContext("2d");
+  context = canvas.getCanvas();
   context.lineWidth = 8;
   context.lineCap = "round";
   context.lineJoin = "miter";
-  context.strokeStyle = 'rgb(200,200,200)';  
+  context.strokeStyle = 'rgba(200,200,200,1)';  
+  
+  
+
   
   
   
-  updateOffsets = function() {
-    xOffset = board.getX();
-    return (yOffset = board.getY());
-  };
-  
-  window.addEventListener("orientationchange", updateOffsets);
-  updateOffsets();
-  
-  
-  window.addEventListener("touchmove", function(event) {
-    return event.preventDefault();
-  });
   
   
   
@@ -102,46 +240,19 @@ YUI({
   };
   
   socket.on('message', function(obj) {
-    var item = JSON.parse(obj);
+    var item = JSON.parse(obj),
+        list = (item && item.from) ? [item] : item;
 
     context.beginPath();
-    if (item.to[0] != null && item.to[1] != null) {
-      doDraw(item.from, item.to);
+    for (var i = 0, len = list.length; i < len; i++) {
+      var item = list[i];
+      if (item.to[0] != null && item.to[1] != null) {
+        doDraw(item.from, item.to);
+      }
     }
     context.stroke();
   });
   
-  var clickDown = false;
-  function getTouch(event) {
-    if (clickDown !== true) {
-      return false;
-    }
-    return 'touches' in event ? event.touches[0] : event;
-  };
-  
-  
-  
-  
-  canvas.on(["touchstart", "mousedown"], function(event) {
-    var _ref, touch;
-    clickDown = true;
-    touch = getTouch(event);
-    _ref = [touch.pageX - xOffset, touch.pageY - yOffset];
-    x = _ref[0];
-    y = _ref[1];
-    return event.preventDefault();
-  });
-  
-  canvas.on(["touchmove", "mousemove"], function(event) {
-    var touch;
-    touch = getTouch(event);
-    return points.push([touch.pageX - xOffset, touch.pageY - yOffset]);
-  });
-  
-  canvas.on(["touchend", "mouseup"], function(event) {
-    clickDown = false;
-    return points.push([x, y], [x, y], null);
-  });
   
   setInterval(function() {
     var start;

@@ -3,6 +3,7 @@ var http = require('http'),
     url = require('url'),
     path = require('path'),
     io = require('socket.io'),
+    //redis = require('redis-node'),
     socket, server, send404, contentTypes;
 
 
@@ -60,10 +61,22 @@ send404 = function(res){
 server.listen(8124);
 
 socket = io.listen(server);
+// db = redis.createClient();
+// 
+// db.select(3);
+
+var buffer = [];
 
 socket.on('connection', function(client) {
+  if (buffer.length > 0) {
+    client.send(JSON.stringify(buffer));
+  }
+  
   client.on('message', function(message){
-    console.log(message);
+    var data = JSON.parse(message);
+
+    buffer.push(data);
+    
     socket.broadcast(message, client.sessionId);
   });
   
